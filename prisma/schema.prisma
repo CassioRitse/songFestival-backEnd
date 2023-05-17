@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Listener {
+  ra         String       @id
+  name       String
+  password   String
+  grade      Grade[]
+  listenerAt ListenerAt[]
+}
+
+model Participant {
+  ra            String          @id
+  name          String
+  password      String?
+  ParticipantAt ParticipantAt[]
+  Presentation  Presentation[]
+}
+
+model Presentation {
+  id            String          @id @default(cuid())
+  musicName     String
+  openToVote    Boolean
+  participantRa String
+  Grade         Grade[]
+  Listeners     ListenerAt[]
+  Participants  ParticipantAt[]
+  ownerRa       Participant     @relation(fields: [participantRa], references: [ra])
+}
+
+model ParticipantAt {
+  participantRa  String
+  presentationId String
+
+  participant  Participant  @relation(fields: [participantRa], references: [ra])
+  presentation Presentation @relation(fields: [presentationId], references: [id])
+
+  @@id([participantRa, presentationId])
+}
+
+model ListenerAt {
+  listenerRa   String
+  presentation String
+
+  listenerId     Listener     @relation(fields: [listenerRa], references: [ra])
+  presentationId Presentation @relation(fields: [presentation], references: [id])
+
+  @@id([listenerRa, presentation])
+}
+
+model Grade {
+  id             String @id @default(cuid())
+  value          Int
+  listenerRa     String
+  presentationId String
+
+  listener     Listener     @relation(fields: [listenerRa], references: [ra])
+  presentation Presentation @relation(fields: [presentationId], references: [id])
+}
